@@ -19,7 +19,7 @@ Installation / Usage
 clone the repo:
 
 ```
-git clone <git-url>
+git clone https://github.com/toschoch/docker-dietzitrack.git
 ```
 build the docker image
 ```
