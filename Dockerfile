@@ -11,7 +11,10 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Define working directory
+RUN mkdir /data && chmod +x /data && cd /data
+COPY track.py /data
+COPY starttrack.sh /data
 WORKDIR /data
 VOLUME /data
 
-CMD ["/bin/bash"]
+CMD ["/starttrack.sh"]
