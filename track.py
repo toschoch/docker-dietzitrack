@@ -79,36 +79,36 @@ def main(log):
 
     location_topic = 'sensors/door/persons'
 
-    mqttc = mqtt_connect(log)
+    # mqttc = mqtt_connect(log)
 
-    def on_appearance(face):
-        face = face.copy()
-        face.pop('coords')
-
-        if face.pop('identified'):
-            payload = {'time': face['appeared'], 'present': 1}
-            mqttc.publish('{loc}/presence/{id}'.format(loc=location_topic, id=face['face_id']), qos=1, payload=json.dumps(payload), retain=True)
-            if face['name'] != 'unknown':
-                mqttc.publish('{loc}/presence/{name}'.format(loc=location_topic, name=face['name']), qos=1, payload=json.dumps(payload), retain=True)
-
-        del face['id']
-        del face['disappeared']
-        face['time'] = face.pop('appeared')
-        mqttc.publish('{loc}/appeared'.format(loc=location_topic), qos=1, payload=json.dumps(face))
-
-    def on_disappearance(face):
-        face = face.copy()
-        face.pop('coords')
-
-        if face.pop('identified'):
-            payload = {'time': face['disappeared'], 'present': 0}
-            mqttc.publish('{loc}/presence/{id}'.format(loc=location_topic, id=face['face_id']), qos=1, payload=json.dumps(payload), retain=True)
-            if face['name'] != 'unknown':
-                mqttc.publish('{loc}/presence/{name}'.format(loc=location_topic, name=face['name']), qos=1, payload=json.dumps(payload), retain=True)
-
-        del face['id']
-        face['time'] = face.pop('disappeared')
-        mqttc.publish('{loc}/disappeared'.format(loc=location_topic), qos=1, payload=json.dumps(face))
+    # def on_appearance(face):
+    #     face = face.copy()
+    #     face.pop('coords')
+    #
+    #     if face.pop('identified'):
+    #         payload = {'time': face['appeared'], 'present': 1}
+    #         mqttc.publish('{loc}/presence/{id}'.format(loc=location_topic, id=face['face_id']), qos=1, payload=json.dumps(payload), retain=True)
+    #         if face['name'] != 'unknown':
+    #             mqttc.publish('{loc}/presence/{name}'.format(loc=location_topic, name=face['name']), qos=1, payload=json.dumps(payload), retain=True)
+    #
+    #     del face['id']
+    #     del face['disappeared']
+    #     face['time'] = face.pop('appeared')
+    #     mqttc.publish('{loc}/appeared'.format(loc=location_topic), qos=1, payload=json.dumps(face))
+    #
+    # def on_disappearance(face):
+    #     face = face.copy()
+    #     face.pop('coords')
+    #
+    #     if face.pop('identified'):
+    #         payload = {'time': face['disappeared'], 'present': 0}
+    #         mqttc.publish('{loc}/presence/{id}'.format(loc=location_topic, id=face['face_id']), qos=1, payload=json.dumps(payload), retain=True)
+    #         if face['name'] != 'unknown':
+    #             mqttc.publish('{loc}/presence/{name}'.format(loc=location_topic, name=face['name']), qos=1, payload=json.dumps(payload), retain=True)
+    #
+    #     del face['id']
+    #     face['time'] = face.pop('disappeared')
+    #     mqttc.publish('{loc}/disappeared'.format(loc=location_topic), qos=1, payload=json.dumps(face))
 
     # setup logging
     from facerec.facetracker import FaceTracker
@@ -116,8 +116,8 @@ def main(log):
 
     try:
         tracker = FaceTracker(url=facerec_server_url)
-        tracker.on_appearance = on_appearance
-        tracker.on_disappearance = on_disappearance
+        # tracker.on_appearance = on_appearance
+        # tracker.on_disappearance = on_disappearance
 
         camera_opencv(tracker=tracker)
     finally:
