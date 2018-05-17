@@ -8,7 +8,7 @@ import logging.handlers
 import time
 import json
 import platform
-import paho.mqtt.client as mqtt
+from mqtt import MQTTClient
 
 
 mqtt_server = "localhost"
@@ -54,61 +54,44 @@ def camera_opencv(**kwargs):
         cv2.destroyAllWindows()
 
 
-def mqtt_connect(log):
-    mqttc = mqtt.Client(client_id=platform.node())
-    mqttc.max_inflight_messages_set(1000)
-    notconnected = True
-
-    while notconnected:
-        try:
-            mqttc.connect(mqtt_server, port=1883, keepalive=60)
-            notconnected = False
-        except ConnectionRefusedError:
-            logging.error("Connection refused! Try again...")
-            time.sleep(2)
-
-    mqttc.loop_start()
-    mqttc.enable_logger(log)
-
-    return mqttc
-
-
-
-
 def main(log):
 
     location_topic = 'sensors/door/persons'
 
-    # mqttc = mqtt_connect(log)
+    mqttc = MQTTClient(mqtt_server, client_id=str(platform.node()))
 
-    # def on_appearance(face):
-    #     face = face.copy()
-    #     face.pop('coords')
-    #
-    #     if face.pop('identified'):
-    #         payload = {'time': face['appeared'], 'present': 1}
-    #         mqttc.publish('{loc}/presence/{id}'.format(loc=location_topic, id=face['face_id']), qos=1, payload=json.dumps(payload), retain=True)
-    #         if face['name'] != 'unknown':
-    #             mqttc.publish('{loc}/presence/{name}'.format(loc=location_topic, name=face['name']), qos=1, payload=json.dumps(payload), retain=True)
-    #
-    #     del face['id']
-    #     del face['disappeared']
-    #     face['time'] = face.pop('appeared')
-    #     mqttc.publish('{loc}/appeared'.format(loc=location_topic), qos=1, payload=json.dumps(face))
-    #
-    # def on_disappearance(face):
-    #     face = face.copy()
-    #     face.pop('coords')
-    #
-    #     if face.pop('identified'):
-    #         payload = {'time': face['disappeared'], 'present': 0}
-    #         mqttc.publish('{loc}/presence/{id}'.format(loc=location_topic, id=face['face_id']), qos=1, payload=json.dumps(payload), retain=True)
-    #         if face['name'] != 'unknown':
-    #             mqttc.publish('{loc}/presence/{name}'.format(loc=location_topic, name=face['name']), qos=1, payload=json.dumps(payload), retain=True)
-    #
-    #     del face['id']
-    #     face['time'] = face.pop('disappeared')
-    #     mqttc.publish('{loc}/disappeared'.format(loc=location_topic), qos=1, payload=json.dumps(face))
+    def on_appearance(face):
+        face = face.copy()
+        face.pop('coords')
+
+        if face.pop('identified'):
+            payload = {'time': face['appeared'], 'present': 1}
+            mqttc.publish('{loc}/presence/{id}'.format(loc=location_topic, id=face['face_id']), qos=1,
+                          payload=json.dumps(payload), retain=True)
+            if face['name'] != 'unknown':
+                mqttc.publish('{loc}/presence/{name}'.format(loc=location_topic, name=face['name']), qos=1,
+                              payload=json.dumps(payload), retain=True)
+
+        del face['id']
+        del face['disappeared']
+        face['time'] = face.pop('appeared')
+        mqttc.publish('{loc}/appeared'.format(loc=location_topic), qos=1, payload=json.dumps(face))
+
+    def on_disappearance(face):
+        face = face.copy()
+        face.pop('coords')
+
+        if face.pop('identified'):
+            payload = {'time': face['disappeared'], 'present': 0}
+            mqttc.publish('{loc}/presence/{id}'.format(loc=location_topic, id=face['face_id']), qos=1,
+                          payload=json.dumps(payload), retain=True)
+            if face['name'] != 'unknown':
+                mqttc.publish('{loc}/presence/{name}'.format(loc=location_topic, name=face['name']), qos=1,
+                              payload=json.dumps(payload), retain=True)
+
+        del face['id']
+        face['time'] = face.pop('disappeared')
+        mqttc.publish('{loc}/disappeared'.format(loc=location_topic), qos=1, payload=json.dumps(face))
 
     # setup logging
     from facerec.facetracker import FaceTracker
@@ -116,8 +99,8 @@ def main(log):
 
     try:
         tracker = FaceTracker(url=facerec_server_url)
-        # tracker.on_appearance = on_appearance
-        # tracker.on_disappearance = on_disappearance
+        tracker.on_appearance = on_appearance
+        tracker.on_disappearance = on_disappearance
 
         camera_opencv(tracker=tracker)
     finally:
@@ -131,7 +114,7 @@ def main_loop(img, tracker):
 
 if __name__ == '__main__':
     log = logging.getLogger("DietziTrack")
-    logging.basicConfig(level=logging.INFO)
+    logging.basicConfig(level=logging.DEBUG)
     log.info("Start tracking...")
     main(log)
     log.info("Stop tracking...")
