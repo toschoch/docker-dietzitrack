@@ -16,26 +16,29 @@ mqtt_server = "localhost"
 facerec_server_url = "http://localhost:8081"
 
 
-def camera_raspi(log, **kwargs):
-    import picamera
-    import picamera.array
-
-    with picamera.PiCamera() as camera:
-        #camera.use_video_port=True
-        time.sleep(1)
-        with picamera.array.PiRGBArray(camera) as stream:
-            log.info("raspberry pi camerea initialized! entering main loop...")
-            while True:
-                camera.capture(stream, format='bgr', use_video_port=True)
-                img = np.array(stream.array).copy()
-                faces = main_loop(img, **kwargs)
-                # reset the stream before the next capture
-                stream.seek(0)
-                stream.truncate()
-                log.info("next frame...")
+# def camera_raspi(**kwargs):
+#     log = kwargs['log']
+#     import picamera
+#     import picamera.array
+#
+#     with picamera.PiCamera() as camera:
+#         #camera.use_video_port=True
+#         time.sleep(1)
+#         with picamera.array.PiRGBArray(camera) as stream:
+#             log.info("raspberry pi camerea initialized! entering main loop...")
+#             while True:
+#                 camera.capture(stream, format='bgr', use_video_port=True)
+#                 img = np.array(stream.array).copy()
+#                 faces = main_loop(img, **kwargs)
+#                 # reset the stream before the next capture
+#                 stream.seek(0)
+#                 stream.truncate()
+#                 log.info("next frame...")
 
 
 def camera_opencv(**kwargs):
+
+    log = kwargs['log']
 
     import cv2
     cam = cv2.VideoCapture(0)
@@ -43,6 +46,7 @@ def camera_opencv(**kwargs):
     line_width = 3
 
     try:
+        log.info("opencv camera initialized! entering main loop...")
         while True:
             ret_val, img = cam.read()
             faces = main_loop(img, **kwargs)
@@ -106,9 +110,8 @@ def main(log):
         tracker.on_appearance = on_appearance
         tracker.on_disappearance = on_disappearance
 
-        # camera_opencv(tracker=tracker)
-        camera_raspi(tracker=tracker, log=log, mqttc=mqttc)
-        # camera_raspi(log=log, mqttc=mqttc)
+        camera_opencv(tracker=tracker, log=log, mqttc=mqttc)
+        #camera_raspi(tracker=tracker, log=log, mqttc=mqttc)
     finally:
         # tracker.stop()
         facedb.close()

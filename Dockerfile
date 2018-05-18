@@ -1,4 +1,4 @@
-FROM resin/raspberry-pi-python:3
+FROM jjanzic/docker-python3-opencv
 MAINTAINER Tobias Schoch <tobias.schoch@helbling.ch>
 
 # Install dependencies
