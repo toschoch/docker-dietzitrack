@@ -11,10 +11,12 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Define working directory
-RUN mkdir /data && chmod +x /data && cd /data
-COPY track.py /data
-COPY starttrack.sh /data
-WORKDIR /data
+RUN usermod -a -G video root
+COPY track.py /
+COPY mqtt.py /
+COPY starttrack.sh /
+RUN mkdir /data && chmod +x /starttrack.sh
 VOLUME /data
+WORKDIR /
 
 CMD ["/starttrack.sh"]

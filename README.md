@@ -30,6 +30,7 @@ Example
 -------
 
 run a container of the image
+note the explicit declaration of the camera device
 ```
-docker run -v ... -p ... dietzitrack
+docker run -v ... -p ... --device=/dev/vcsm --device=/dev/vchiq  dietzitrack
 ```

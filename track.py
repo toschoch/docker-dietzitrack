@@ -8,6 +8,7 @@ import logging.handlers
 import time
 import json
 import platform
+import numpy as np
 from mqtt import MQTTClient
 
 
@@ -15,20 +16,23 @@ mqtt_server = "localhost"
 facerec_server_url = "http://localhost:8081"
 
 
-def camera_raspi(**kwargs):
+def camera_raspi(log, **kwargs):
     import picamera
+    import picamera.array
 
     with picamera.PiCamera() as camera:
-        camera.use_video_port=True
+        #camera.use_video_port=True
         time.sleep(1)
         with picamera.array.PiRGBArray(camera) as stream:
+            log.info("raspberry pi camerea initialized! entering main loop...")
             while True:
-                camera.capture(stream, format='bgr')
-                img = stream.array
+                camera.capture(stream, format='bgr', use_video_port=True)
+                img = np.array(stream.array).copy()
                 faces = main_loop(img, **kwargs)
                 # reset the stream before the next capture
                 stream.seek(0)
                 stream.truncate()
+                log.info("next frame...")
 
 
 def camera_opencv(**kwargs):
@@ -102,15 +106,15 @@ def main(log):
         tracker.on_appearance = on_appearance
         tracker.on_disappearance = on_disappearance
 
-        camera_opencv(tracker=tracker)
+        # camera_opencv(tracker=tracker)
+        camera_raspi(tracker=tracker, log=log, mqttc=mqttc)
+        # camera_raspi(log=log, mqttc=mqttc)
     finally:
-        tracker.stop()
+        # tracker.stop()
         facedb.close()
 
-def main_loop(img, tracker):
+def main_loop(img, tracker, **kwargs):
     return tracker.update(img)
-
-
 
 if __name__ == '__main__':
     log = logging.getLogger("DietziTrack")
