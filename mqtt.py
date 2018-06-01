@@ -9,6 +9,10 @@ import paho.mqtt.client
 
 log = logging.getLogger(__name__)
 
+class MQTTMock(object):
+
+    def publish(self, topic, payload=None, qos=0, retain=False):
+        log.info("{}: {}".format(topic, payload))
 
 class MQTTClient(object):
 

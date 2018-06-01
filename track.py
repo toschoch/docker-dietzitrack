@@ -9,7 +9,7 @@ import time
 import json
 import platform
 import numpy as np
-from mqtt import MQTTClient
+from mqtt import MQTTClient, MQTTMock
 
 
 mqtt_server = "localhost"
@@ -66,7 +66,8 @@ def main(log):
 
     location_topic = 'sensors/door/persons'
 
-    mqttc = MQTTClient(mqtt_server, client_id=str(platform.node()))
+    #mqttc = MQTTClient(mqtt_server, client_id=str(platform.node()))
+    mqttc = MQTTMock()
 
     def on_appearance(face):
         face = face.copy()

@@ -1,4 +1,4 @@
-FROM jjanzic/docker-python3-opencv
+FROM sgtwilko/rpi-raspbian-opencv
 MAINTAINER Tobias Schoch <tobias.schoch@helbling.ch>
 
 # Install dependencies
