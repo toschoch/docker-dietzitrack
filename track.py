@@ -7,13 +7,14 @@ import logging
 import logging.handlers
 import time
 import json
+import dlib
 import platform
 import numpy as np
 from mqtt import MQTTClient, MQTTMock
 
 
 mqtt_server = "localhost"
-facerec_server_url = "http://localhost:8081"
+facerec_server_url = "http://192.168.0.40:3080"
 
 
 # def camera_raspi(**kwargs):
@@ -36,7 +37,7 @@ facerec_server_url = "http://localhost:8081"
 #                 log.info("next frame...")
 
 
-def camera_opencv(**kwargs):
+def camera_opencv(tracker, **kwargs):
 
     log = kwargs['log']
 
@@ -47,19 +48,31 @@ def camera_opencv(**kwargs):
 
     try:
         log.info("opencv camera initialized! entering main loop...")
+        t0 = time.time()
+        fps = 0
         while True:
             ret_val, img = cam.read()
-            faces = main_loop(img, **kwargs)
-            for face in faces:
-                coords = face.coords();
-                cv2.rectangle(img, (coords[0], coords[1]), (coords[2], coords[3]), color_green, line_width)
-                cv2.putText(img, face.name('not identified'), (coords[0], coords[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 1,
-                            (255, 255, 255), 1, cv2.LINE_AA)
-            cv2.imshow('my webcam', img)
-            if cv2.waitKey(1) == 27:
-                break  # esc to quit
+            tracker.update(img)
+            # faces = main_loop(img, **kwargs)
+            # for face in faces:
+            #     coords = face.coords();
+            #     cv2.rectangle(img, (coords[0], coords[1]), (coords[2], coords[3]), color_green, line_width)
+            #     cv2.putText(img, face.name('not identified'), (coords[0], coords[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 1,
+            #                 (255, 255, 255), 1, cv2.LINE_AA)
+            # cv2.imshow('my webcam', img)
+            # if cv2.waitKey(1) == 27:
+            #     break  # esc to quit
+            fps += 1
+            t = time.time()
+            if t-t0>=1:
+                t0 = t
+                log.info("frames per second: {}".format(fps))
+                fps = 0
+            #     log.info("image {}".format(img.shape))
+            #     log.info("faces {}".format(faces))
     finally:
-        cv2.destroyAllWindows()
+        pass
+        # cv2.destroyAllWindows()
 
 
 def main(log):
@@ -108,17 +121,13 @@ def main(log):
 
     try:
         tracker = FaceTracker(url=facerec_server_url)
-        tracker.on_appearance = on_appearance
-        tracker.on_disappearance = on_disappearance
+        # tracker.on_appearance = on_appearance
+        # tracker.on_disappearance = on_disappearance
 
         camera_opencv(tracker=tracker, log=log, mqttc=mqttc)
-        #camera_raspi(tracker=tracker, log=log, mqttc=mqttc)
     finally:
         # tracker.stop()
         facedb.close()
-
-def main_loop(img, tracker, **kwargs):
-    return tracker.update(img)
 
 if __name__ == '__main__':
     log = logging.getLogger("DietziTrack")
