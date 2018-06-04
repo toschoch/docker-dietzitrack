@@ -11,6 +11,7 @@ pipeline:
     image: drillster/drone-volume-cache
     restore: true
     ttl: 7
+    privileged: true
     mount:
       - /drone/docker
     # Mount the cache volume, needs "Trusted"
@@ -29,6 +30,7 @@ pipeline:
   rebuild-cache:
     image: drillster/drone-volume-cache
     rebuild: true
+    privileged: true
     mount:
       - /drone/docker
     # Mount the cache volume, needs "Trusted"
