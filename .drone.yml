@@ -8,7 +8,7 @@ clone:
 pipeline:
 
   restore-cache:
-    image: drillster/drone-volume-cache
+    image: drillster/drone-volume-cache:linux-arm
     restore: true
     ttl: 7
     privileged: true
@@ -28,7 +28,7 @@ pipeline:
 
 
   rebuild-cache:
-    image: drillster/drone-volume-cache
+    image: drillster/drone-volume-cache:linux-arm
     rebuild: true
     privileged: true
     mount:
