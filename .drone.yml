@@ -8,12 +8,12 @@ clone:
 pipeline:
 
   restore-cache:
-    image: drillster/drone-volume-cache
+    image: shocki/drone-volume-cache
     restore: true
     ttl: 7
     privileged: true
-#    mount:
-#      - /drone/docker
+    mount:
+      - /drone/docker
     volumes:
       - /tmp/cache:/cache
 
@@ -27,11 +27,11 @@ pipeline:
 
 
   rebuild-cache:
-    image: drillster/drone-volume-cache
+    image: shocki/drone-volume-cache
     rebuild: true
     privileged: true
-#    mount:
-#      - /drone/docker
+    mount:
+      - /drone/docker
     # Mount the cache volume, needs "Trusted"
     volumes:
       - /tmp/cache:/cache
