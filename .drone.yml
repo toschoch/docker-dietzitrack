@@ -6,9 +6,31 @@ clone:
     tags: true
 
 pipeline:
+
+  restore-cache:
+    image: drillster/drone-volume-cache
+    restore: true
+    ttl: 7
+    mount:
+      - /drone/docker
+    # Mount the cache volume, needs "Trusted"
+    volumes:
+      - /tmp/cache:/cache
+
   docker:
     image: plugins/docker:linux-arm
     repo: shocki/dietzitrack
     tags: latest
+    storage_path: /drone/docker
     auto_tag: true
     secrets: [ docker_username, docker_password ]
+
+
+  rebuild-cache:
+    image: drillster/drone-volume-cache
+    rebuild: true
+    mount:
+      - /drone/docker
+    # Mount the cache volume, needs "Trusted"
+    volumes:
+      - /tmp/cache:/cache
