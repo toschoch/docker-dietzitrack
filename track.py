@@ -121,8 +121,8 @@ def main(log):
 
     try:
         tracker = FaceTracker(url=facerec_server_url)
-        # tracker.on_appearance = on_appearance
-        # tracker.on_disappearance = on_disappearance
+        tracker.on_appearance = lambda face: log.info("{}".format(face))
+        tracker.on_disappearance = lambda face: log.info("{}".format(face))
 
         camera_opencv(tracker=tracker, log=log, mqttc=mqttc)
     finally:
