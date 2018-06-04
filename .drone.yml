@@ -1,13 +1,14 @@
 platform: linux/arm
 
 clone:
-  default:
+  clone:
     image: plugins/git:linux-arm
     tags: true
 
 pipeline:
   docker:
-    image: shocki/dietzitrack
+    image: plugins/docker
+    repo: shocki/dietzitrack
     tags: latest
     auto_tag: true
     secrets: [ docker_username, docker_password ]
