@@ -12,3 +12,4 @@ pipeline:
     tags: latest
     auto_tag: true
     secrets: [ docker_username, docker_password ]
+    
