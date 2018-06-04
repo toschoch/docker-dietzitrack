@@ -7,9 +7,8 @@ clone:
 
 pipeline:
   docker:
-    image: plugins/docker
+    image: plugins/docker:linux-arm
     repo: shocki/dietzitrack
     tags: latest
     auto_tag: true
     secrets: [ docker_username, docker_password ]
-    
