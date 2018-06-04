@@ -1,33 +1,13 @@
-pipeline:
-  clone:
-    image: plugins/git
+platform: linux/arm
+
+clone:
+  default:
+    image: plugins/git:linux-arm
     tags: true
 
+pipeline:
   docker:
     image: shocki/dietzitrack
     tags: latest
-
-#  build:
-#    image: python 3
-#      - python setup.py bdist_wheel
-#      - python setup.py sdist
-#      - python setup.py sdist --formats=zip
-#
-#  staging:
-#    image: shocki/drone-devpi
-#    server:
-#    index:
-#    username:
-#    password:
-#    when:
-#      branch: master
-#
-#  release:
-#    image: shocki/drone-devpi
-#    server:
-#    index:
-#    username:
-#    password:
-#    when:
-#      event: tag
-#      status: success
+    auto_tag: true
+    secrets: [ docker_username, docker_password ]
