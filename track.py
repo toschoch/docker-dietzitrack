@@ -75,7 +75,7 @@ def main(log):
         payload['name'] = face.get('name')
         payload['face_id'] = face.get('face_id')
         payload['identified'] = face.get('identified')
-        mqttc.publish('{loc}/identified'.format(loc=location_topic), qos=1, payload=json.dumps(payload))
+        mqttc.publish('{loc}/identified'.format(loc=location_topic), qos=1, payload=json.dumps(payload), retain=True)
 
     def on_disappearance(face):
 
@@ -93,14 +93,14 @@ def main(log):
         payload['face_id'] = face.get('face_id',-1)
         payload['id'] = face.get('id',-1)
         payload['identified'] = face.get('identified')
-        mqttc.publish('{loc}/disappeared'.format(loc=location_topic), qos=1, payload=json.dumps(payload))
+        mqttc.publish('{loc}/disappeared'.format(loc=location_topic), qos=1, payload=json.dumps(payload), retain=True)
 
     def on_appearance(face):
 
         payload = {}
         payload['time'] = face.get('appeared')
         payload['id'] = face.get('id',-1)
-        mqttc.publish('{loc}/appeared'.format(loc=location_topic), qos=1, payload=json.dumps(payload))
+        mqttc.publish('{loc}/appeared'.format(loc=location_topic), qos=1, payload=json.dumps(payload), retain=True)
 
     # setup logging
     from facerec.facetracker import FaceTracker
