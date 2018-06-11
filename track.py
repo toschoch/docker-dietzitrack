@@ -27,10 +27,10 @@ def camera_opencv(tracker, **kwargs):
     # color_green = (0, 255, 0)
     # line_width = 3
 
-    app_topic = 'device/{}/dietzitrack'.format(str(hostname))
-    webcam_topic = 'webcam/door'
+    app_topic = 'devices/{}/dietzitrack'.format(str(hostname))
+    webcam_topic = 'webcams/door'
 
-    interval_fps = 1
+    interval_fps = 10
     interval_webcam = 5
 
     try:
@@ -45,12 +45,13 @@ def camera_opencv(tracker, **kwargs):
             t = time.time()
             if t-t0_1>=interval_fps:
                 t0_1 = t
-                mqttc.publish(app_topic, qos=1, payload=json.dumps({'status':'active','fps':fps}), retain=True)
+                mqttc.publish(app_topic, qos=1, payload=json.dumps({'status':'active','fps':fps/interval_fps}), retain=True)
+                fps = 0
             if t-t0_2>=interval_webcam:
                 t0_2 = t
                 mqttc.publish(webcam_topic, qos=1, payload=cv2.imencode('.jpg', img)[1].tostring(), retain=True)
     finally:
-        mqttc.publish(app_topic, qos=1, payload=json.dumps({'status': 'stopped', 'fps': fps}), retain=True)
+        mqttc.publish(app_topic, qos=1, payload=json.dumps({'status': 'stopped', 'fps': 0}), retain=True)
         # cv2.destroyAllWindows()
 
 
@@ -61,8 +62,6 @@ def main(log):
     mqttc = MQTTClient(mqtt_server, client_id=str(hostname))
 
     def on_identifaction(face):
-        face = face.copy()
-        face.pop('coords')
 
         payload = {'time': face['appeared'], 'present': 1}
         mqttc.publish('{loc}/presence/{id}'.format(loc=location_topic, id=face['face_id']), qos=1,
@@ -71,14 +70,16 @@ def main(log):
             mqttc.publish('{loc}/presence/{name}'.format(loc=location_topic, name=face['name']), qos=1,
                           payload=json.dumps(payload), retain=True)
 
-        face['time'] = face.pop('appeared')
-        mqttc.publish('{loc}/appeared'.format(loc=location_topic), qos=1, payload=json.dumps(face))
+        payload = {}
+        payload['time'] = face.get('appeared')
+        payload['name'] = face.get('name')
+        payload['face_id'] = face.get('face_id')
+        payload['identified'] = face.get('identified')
+        mqttc.publish('{loc}/identified'.format(loc=location_topic), qos=1, payload=json.dumps(payload))
 
     def on_disappearance(face):
-        face = face.copy()
-        face.pop('coords')
 
-        if face.pop('identified'):
+        if face.get('identified'):
             payload = {'time': face['disappeared'], 'present': 0}
             mqttc.publish('{loc}/presence/{id}'.format(loc=location_topic, id=face['face_id']), qos=1,
                           payload=json.dumps(payload), retain=True)
@@ -86,9 +87,20 @@ def main(log):
                 mqttc.publish('{loc}/presence/{name}'.format(loc=location_topic, name=face['name']), qos=1,
                               payload=json.dumps(payload), retain=True)
 
-        del face['id']
-        face['time'] = face.pop('disappeared')
-        mqttc.publish('{loc}/disappeared'.format(loc=location_topic), qos=1, payload=json.dumps(face))
+        payload = {}
+        payload['time'] = face.get('disappeared')
+        payload['name'] = face.get('name','unknown')
+        payload['face_id'] = face.get('face_id',-1)
+        payload['id'] = face.get('id',-1)
+        payload['identified'] = face.get('identified')
+        mqttc.publish('{loc}/disappeared'.format(loc=location_topic), qos=1, payload=json.dumps(payload))
+
+    def on_appearance(face):
+
+        payload = {}
+        payload['time'] = face.get('appeared')
+        payload['id'] = face.get('id',-1)
+        mqttc.publish('{loc}/appeared'.format(loc=location_topic), qos=1, payload=json.dumps(payload))
 
     # setup logging
     from facerec.facetracker import FaceTracker
@@ -96,6 +108,7 @@ def main(log):
 
     try:
         tracker = FaceTracker(url=facerec_server_url, identification_interval=1, missing_tolerance_nframes=3)
+        tracker.on_appearance = on_appearance
         tracker.on_identification = on_identifaction
         tracker.on_disappearance = on_disappearance
 
@@ -106,7 +119,7 @@ def main(log):
 
 if __name__ == '__main__':
     log = logging.getLogger("DietziTrack")
-    logging.basicConfig(level=logging.DEBUG, format="%(asctime)s:%(levelname)s:%(message)s")
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s:%(levelname)s:%(message)s")
     log.info("Start tracking...")
     main(log)
     log.info("Stop tracking...")
