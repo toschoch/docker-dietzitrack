@@ -1,4 +1,3 @@
-#!/usr/bin/env bash
+#!/bin/ash
 
-#pip3 install picamera
-python3 track.py
+python track.py

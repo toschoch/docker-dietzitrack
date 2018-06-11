@@ -45,9 +45,11 @@ class MQTTClient(object):
         self._client.on_disconnect = self._on_client_disconnect
 
     def _on_client_connect(self):
+        log.debug("connecting...")
         self._connected = True
 
     def _on_client_disconnect(self):
+        log.debug("disconnecting...")
         self._connected = False
 
     def _assert_connected(self):
@@ -62,6 +64,8 @@ class MQTTClient(object):
 
 
     def publish(self, topic, payload=None, qos=0, retain=False):
-        if not self._assert_connected(): return
+        if not self._assert_connected():
+            log.warning("Could not connect to broker! skip publishing...")
+            return
         return self._client.publish(topic=topic, payload=payload, qos=qos, retain=retain)
 
