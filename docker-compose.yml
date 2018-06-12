@@ -1,0 +1,15 @@
+services:
+  track:
+    image: docker
+    command:
+      - DOCKER_HOSTNAME="$(docker info -f {{.Name}})"
+      - docker run --device /dev/video0:/dev/video0 -e DOCKER_HOSTNAME shocki/dietzitrack
+
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - node.hostname == linuxkit-00155d84c112

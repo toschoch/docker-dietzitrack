@@ -11,8 +11,8 @@ import json
 from mqtt import MQTTClient, MQTTMock
 
 
-mqtt_server = "192.168.0.40"
-facerec_server_url = "http://192.168.0.40:3080"
+mqtt_server = os.environ['MQTT_SERVER']
+facerec_server_url = os.environ['FACEREC_SERVER']
 
 hostname = os.environ['DOCKER_HOSTNAME']
 
