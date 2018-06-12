@@ -64,7 +64,7 @@ def main(log):
 
     mqttc = MQTTClient(mqtt_server, client_id=str(hostname))
 
-
+    mqttc._client.username_pw_set(str(hostname),os.environ['MQTT_PW'])
 
     def on_identifaction(face):
 
