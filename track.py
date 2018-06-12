@@ -33,6 +33,9 @@ def camera_opencv(tracker, **kwargs):
     interval_fps = 10
     interval_webcam = 5
 
+    mqttc._client.will_set(app_topic, qos=1, payload=json.dumps({'status': 'stopped', 'fps': 0}), retain=True)
+    mqttc.publish(app_topic, qos=1, payload=json.dumps({'status': 'active', 'fps': 0}), retain=True)
+
     try:
         log.info("opencv camera initialized! entering main loop...")
         t0_1 = time.time()
@@ -51,7 +54,7 @@ def camera_opencv(tracker, **kwargs):
                 t0_2 = t
                 mqttc.publish(webcam_topic, qos=1, payload=cv2.imencode('.jpg', img)[1].tostring(), retain=True)
     finally:
-        mqttc.publish(app_topic, qos=1, payload=json.dumps({'status': 'stopped', 'fps': 0}), retain=True)
+        pass
         # cv2.destroyAllWindows()
 
 
@@ -60,6 +63,8 @@ def main(log):
     location_topic = 'sensors/door/persons'
 
     mqttc = MQTTClient(mqtt_server, client_id=str(hostname))
+
+
 
     def on_identifaction(face):
 
