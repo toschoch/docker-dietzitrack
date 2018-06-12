@@ -107,9 +107,11 @@ def main(log):
     from facerec import facedb
 
     try:
-        tracker = FaceTracker(url=facerec_server_url, identification_interval=1, missing_tolerance_nframes=3)
+        tracker = FaceTracker(url=facerec_server_url,
+                              identification_interval=1,
+                              missing_tolerance_nframes=3,
+                              identification_callback=on_identifaction)
         tracker.on_appearance = on_appearance
-        tracker.on_identification = on_identifaction
         tracker.on_disappearance = on_disappearance
 
         camera_opencv(tracker=tracker, log=log, mqttc=mqttc)
