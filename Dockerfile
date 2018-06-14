@@ -4,7 +4,7 @@ MAINTAINER Tobias Schoch <tobias.schoch@helbling.ch>
 # Install dependencies
 # install facerec
 COPY requirements.txt /
-RUN pip install python_facerec --index-url=http://dietzi.ddns.net:3141/dietzi/stable --trusted-host dietzi.ddns.net \
+RUN pip install facerec>=0.1.5 --index-url=http://dietzi.ddns.net:3141/dietzi/stable --trusted-host dietzi.ddns.net \
     && pip install -r requirements.txt --index-url=http://dietzi.ddns.net:3141/dietzi/stable --trusted-host dietzi.ddns.net
 
 # Define working directory
