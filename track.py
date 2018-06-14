@@ -119,7 +119,7 @@ def main(log):
 
     try:
         tracker = FaceTracker(url=facerec_server_url,
-                              identification_interval=1,
+                              identification_interval=2,
                               missing_tolerance_nframes=10,
                               appearance_callback=on_appearance,
                               identification_callback=on_identifaction,
@@ -127,7 +127,7 @@ def main(log):
 
         camera_opencv(tracker=tracker, log=log, mqttc=mqttc)
     finally:
-        # tracker.stop()
+        tracker.stop()
         facedb.close()
 
 if __name__ == '__main__':
