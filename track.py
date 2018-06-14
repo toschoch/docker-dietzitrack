@@ -10,11 +10,18 @@ import json
 
 from mqtt import MQTTClient, MQTTMock
 
+app_name = "DietziTrack"
 
-mqtt_server = os.environ['MQTT_SERVER']
-facerec_server_url = os.environ['FACEREC_SERVER']
+mqtt_server = os.environ.get('MQTT_SERVER','mqtt')
+facerec_server_url = os.environ.get('FACEREC_SERVER','http://facerec:80')
 
-hostname = os.environ['DOCKER_HOSTNAME']
+location = os.environ.get('CAM_LOCATION','door')
+
+# get password
+if 'MQTT_PW' not in os.environ:
+    mqtt_pw = open('run/secrets/mqtt_pw','r').read()
+else:
+    mqtt_pw = os.environ['MQTT_PW']
 
 def camera_opencv(tracker, **kwargs):
 
@@ -27,14 +34,14 @@ def camera_opencv(tracker, **kwargs):
     # color_green = (0, 255, 0)
     # line_width = 3
 
-    app_topic = 'devices/{}/dietzitrack'.format(str(hostname))
-    webcam_topic = 'webcams/door'
+    app_topic = 'apps/{}'.format(app_name.lower())
+    webcam_topic = 'webcams/{}'.format(location)
 
     interval_fps = 10
     interval_webcam = 5
 
-    mqttc._client.will_set(app_topic, qos=1, payload=json.dumps({'status': 'stopped', 'fps': 0}), retain=True)
-    mqttc.publish(app_topic, qos=1, payload=json.dumps({'status': 'active', 'fps': 0}), retain=True)
+    mqttc._client.will_set(app_topic, qos=1, payload=json.dumps({'status': 'stopped', 'fps': 0, 'location': location}), retain=True)
+    mqttc.publish(app_topic, qos=1, payload=json.dumps({'status': 'active', 'fps': 0, 'location': location}), retain=True)
 
     try:
         log.info("opencv camera initialized! entering main loop...")
@@ -48,7 +55,7 @@ def camera_opencv(tracker, **kwargs):
             t = time.time()
             if t-t0_1>=interval_fps:
                 t0_1 = t
-                mqttc.publish(app_topic, qos=1, payload=json.dumps({'status':'active','fps':fps/interval_fps}), retain=True)
+                mqttc.publish(app_topic, qos=1, payload=json.dumps({'status':'active','fps':fps/interval_fps, 'location': location}), retain=True)
                 fps = 0
             if t-t0_2>=interval_webcam:
                 t0_2 = t
@@ -60,11 +67,10 @@ def camera_opencv(tracker, **kwargs):
 
 def main(log):
 
-    location_topic = 'sensors/door/persons'
+    location_topic = 'sensors/{}/persons'.format(location)
 
-    mqttc = MQTTClient(mqtt_server, client_id=str(hostname))
-
-    mqttc._client.username_pw_set(str(hostname),os.environ['MQTT_PW'])
+    mqttc = MQTTClient(mqtt_server, client_id=app_name)
+    mqttc._client.username_pw_set(app_name.lower(), mqtt_pw)
 
     def on_identifaction(face):
 
@@ -114,10 +120,10 @@ def main(log):
     try:
         tracker = FaceTracker(url=facerec_server_url,
                               identification_interval=1,
-                              missing_tolerance_nframes=3,
-                              identification_callback=on_identifaction)
-        tracker.on_appearance = on_appearance
-        tracker.on_disappearance = on_disappearance
+                              missing_tolerance_nframes=10,
+                              appearance_callback=on_appearance,
+                              identification_callback=on_identifaction,
+                              disappearance_callback=on_disappearance)
 
         camera_opencv(tracker=tracker, log=log, mqttc=mqttc)
     finally:
@@ -125,7 +131,7 @@ def main(log):
         facedb.close()
 
 if __name__ == '__main__':
-    log = logging.getLogger("DietziTrack")
+    log = logging.getLogger(app_name)
     logging.basicConfig(level=logging.INFO, format="%(asctime)s:%(levelname)s:%(message)s")
     log.info("Start tracking...")
     main(log)
