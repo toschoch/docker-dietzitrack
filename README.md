@@ -57,7 +57,7 @@ git clone https://github.com/toschoch/docker-dietzitrack.git
 ```
 build the docker image
 ```
-docker build . -t dietzitrack
+docker build . -t shocki/dietzitrack
 ```
 
 Example
@@ -66,5 +66,8 @@ Example
 run a container of the image
 note the explicit declaration of the camera device
 ```
-docker run -v ... -p ... --device=/dev/vcsm --device=/dev/vchiq  dietzitrack
+docker run -d --rm --name track --device /dev/video0 shocki/dietzitrack
 ```
+
+As devices in swarm deploys are not yet supported by docker. The `docker-compose.yml` cannot
+yet be used.

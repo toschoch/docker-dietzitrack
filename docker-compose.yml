@@ -3,7 +3,7 @@ services:
     image: docker
     command:
       - DOCKER_HOSTNAME="$(docker info -f {{.Name}})"
-      - docker run --device /dev/video0:/dev/video0 -e DOCKER_HOSTNAME shocki/dietzitrack
+      - docker run --device /dev/video0:/dev/video0 shocki/dietzitrack
 
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
